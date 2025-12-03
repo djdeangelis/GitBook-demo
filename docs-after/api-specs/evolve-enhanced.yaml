@@ -1,0 +1,1036 @@
+openapi: 3.0.3
+info:
+  title: Evolve Payments API
+  description: |
+    Modern payment processing API for SaaS companies. Accept payments, manage customers, and handle refunds with ease.
+    
+    ## Authentication
+    All API requests require authentication using an API key passed in the Authorization header as a Bearer token.
+    
+    ## Base URL
+    All API requests should be made to: `https://api.evolvepayments.com/v1`
+    
+    ## Test Mode
+    Use test API keys (prefixed with `sk_test_`) to interact with the API without affecting live data.
+  version: 1.0.0
+  contact:
+    name: Evolve Payments Support
+    email: support@evolvepayments.com
+    url: https://evolvepayments.com/support
+
+servers:
+  - url: https://api.evolvepayments.com/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Payments
+    description: Create and manage payment transactions
+  - name: Customers
+    description: Create and manage customer records
+
+paths:
+  /payments:
+    post:
+      tags:
+        - Payments
+      summary: Create a payment
+      description: |
+        Creates a new payment transaction. Amounts should be provided in cents (e.g., 2999 for $29.99).
+        
+        The payment will be processed immediately and you'll receive a response with the payment status.
+        For successful payments, the status will be `succeeded`. Failed payments will have a status of `failed`.
+        
+        **Test Cards:**
+        - `4242424242424242` - Success
+        - `4000000000000002` - Decline
+        - `4000000000009995` - Insufficient funds
+      operationId: createPayment
+      x-internal: false
+      x-codeSamples:
+        - lang: curl
+          label: cURL
+          source: |
+            curl https://api.evolvepayments.com/v1/payments \
+              -H "Authorization: Bearer sk_test_1a2b3c4d5e6f" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "amount": 2999,
+                "currency": "usd",
+                "card": {
+                  "number": "4242424242424242",
+                  "exp_month": 12,
+                  "exp_year": 2025,
+                  "cvc": "123"
+                },
+                "description": "Monthly subscription"
+              }'
+        - lang: python
+          label: Python
+          source: |
+            import requests
+            
+            url = "https://api.evolvepayments.com/v1/payments"
+            headers = {
+                "Authorization": "Bearer sk_test_1a2b3c4d5e6f",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "amount": 2999,
+                "currency": "usd",
+                "card": {
+                    "number": "4242424242424242",
+                    "exp_month": 12,
+                    "exp_year": 2025,
+                    "cvc": "123"
+                },
+                "description": "Monthly subscription"
+            }
+            
+            response = requests.post(url, json=data, headers=headers)
+            payment = response.json()
+            print(f"Payment ID: {payment['id']}")
+        - lang: javascript
+          label: Node.js
+          source: |
+            const axios = require('axios');
+            
+            const createPayment = async () => {
+              const response = await axios.post(
+                'https://api.evolvepayments.com/v1/payments',
+                {
+                  amount: 2999,
+                  currency: 'usd',
+                  card: {
+                    number: '4242424242424242',
+                    exp_month: 12,
+                    exp_year: 2025,
+                    cvc: '123'
+                  },
+                  description: 'Monthly subscription'
+                },
+                {
+                  headers: {
+                    'Authorization': 'Bearer sk_test_1a2b3c4d5e6f',
+                    'Content-Type': 'application/json'
+                  }
+                }
+              );
+              
+              console.log('Payment ID:', response.data.id);
+              return response.data;
+            };
+            
+            createPayment();
+        - lang: ruby
+          label: Ruby
+          source: |
+            require 'net/http'
+            require 'json'
+            require 'uri'
+            
+            uri = URI('https://api.evolvepayments.com/v1/payments')
+            
+            http = Net::HTTP.new(uri.host, uri.port)
+            http.use_ssl = true
+            
+            request = Net::HTTP::Post.new(uri.path)
+            request['Authorization'] = 'Bearer sk_test_1a2b3c4d5e6f'
+            request['Content-Type'] = 'application/json'
+            request.body = {
+              amount: 2999,
+              currency: 'usd',
+              card: {
+                number: '4242424242424242',
+                exp_month: 12,
+                exp_year: 2025,
+                cvc: '123'
+              },
+              description: 'Monthly subscription'
+            }.to_json
+            
+            response = http.request(request)
+            payment = JSON.parse(response.body)
+            puts "Payment ID: #{payment['id']}"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - currency
+              properties:
+                amount:
+                  type: integer
+                  description: Payment amount in cents (e.g., 2999 for $29.99)
+                  example: 2999
+                currency:
+                  type: string
+                  description: Three-letter ISO currency code (lowercase)
+                  example: usd
+                  enum: [usd, eur, gbp]
+                customer_id:
+                  type: string
+                  description: ID of an existing customer to associate with this payment
+                  example: cus_1a2b3c4d5e6f
+                description:
+                  type: string
+                  description: Arbitrary description for the payment (displayed in dashboard and receipts)
+                  example: Monthly subscription
+                card:
+                  type: object
+                  description: Card details for the payment. Required if customer_id is not provided.
+                  required:
+                    - number
+                    - exp_month
+                    - exp_year
+                    - cvc
+                  properties:
+                    number:
+                      type: string
+                      description: Card number without spaces or dashes
+                      example: "4242424242424242"
+                    exp_month:
+                      type: integer
+                      description: Two-digit expiration month (1-12)
+                      example: 12
+                      minimum: 1
+                      maximum: 12
+                    exp_year:
+                      type: integer
+                      description: Four-digit expiration year
+                      example: 2025
+                    cvc:
+                      type: string
+                      description: 3 or 4-digit card security code
+                      example: "123"
+                metadata:
+                  type: object
+                  description: Set of key-value pairs for storing additional information (max 20 keys)
+                  additionalProperties:
+                    type: string
+                  example:
+                    order_id: "ord_12345"
+                    customer_name: "John Doe"
+            examples:
+              basic:
+                summary: Basic payment
+                value:
+                  amount: 2999
+                  currency: usd
+                  card:
+                    number: "4242424242424242"
+                    exp_month: 12
+                    exp_year: 2025
+                    cvc: "123"
+                  description: Monthly subscription
+              with_customer:
+                summary: Payment with existing customer
+                value:
+                  amount: 4999
+                  currency: usd
+                  customer_id: cus_1a2b3c4d5e6f
+                  description: Annual subscription upgrade
+      responses:
+        '200':
+          description: Payment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+              examples:
+                success:
+                  summary: Successful payment
+                  value:
+                    id: pay_1a2b3c4d5e6f
+                    amount: 2999
+                    currency: usd
+                    status: succeeded
+                    customer_id: null
+                    description: Monthly subscription
+                    created_at: "2024-03-15T10:30:00Z"
+                    metadata:
+                      order_id: "ord_12345"
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_currency:
+                  summary: Invalid currency code
+                  value:
+                    error:
+                      type: invalid_request_error
+                      message: "Invalid currency code. Must be one of: usd, eur, gbp"
+                      code: invalid_currency
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_key:
+                  summary: Invalid API key
+                  value:
+                    error:
+                      type: authentication_error
+                      message: Invalid API key provided
+                      code: invalid_api_key
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payments/{id}:
+    get:
+      tags:
+        - Payments
+      summary: Retrieve a payment
+      description: |
+        Retrieves the details of a previously created payment by its unique identifier.
+        
+        This endpoint is useful for checking the status of a payment or retrieving payment details
+        for record-keeping purposes.
+      operationId: getPayment
+      x-internal: false
+      x-codeSamples:
+        - lang: curl
+          label: cURL
+          source: |
+            curl https://api.evolvepayments.com/v1/payments/pay_1a2b3c4d5e6f \
+              -H "Authorization: Bearer sk_test_1a2b3c4d5e6f"
+        - lang: python
+          label: Python
+          source: |
+            import requests
+            
+            url = "https://api.evolvepayments.com/v1/payments/pay_1a2b3c4d5e6f"
+            headers = {"Authorization": "Bearer sk_test_1a2b3c4d5e6f"}
+            
+            response = requests.get(url, headers=headers)
+            payment = response.json()
+            print(f"Status: {payment['status']}")
+        - lang: javascript
+          label: Node.js
+          source: |
+            const axios = require('axios');
+            
+            const getPayment = async (paymentId) => {
+              const response = await axios.get(
+                `https://api.evolvepayments.com/v1/payments/${paymentId}`,
+                {
+                  headers: {
+                    'Authorization': 'Bearer sk_test_1a2b3c4d5e6f'
+                  }
+                }
+              );
+              
+              console.log('Payment status:', response.data.status);
+              return response.data;
+            };
+            
+            getPayment('pay_1a2b3c4d5e6f');
+        - lang: ruby
+          label: Ruby
+          source: |
+            require 'net/http'
+            require 'json'
+            require 'uri'
+            
+            payment_id = 'pay_1a2b3c4d5e6f'
+            uri = URI("https://api.evolvepayments.com/v1/payments/#{payment_id}")
+            
+            http = Net::HTTP.new(uri.host, uri.port)
+            http.use_ssl = true
+            
+            request = Net::HTTP::Get.new(uri.path)
+            request['Authorization'] = 'Bearer sk_test_1a2b3c4d5e6f'
+            
+            response = http.request(request)
+            payment = JSON.parse(response.body)
+            puts "Status: #{payment['status']}"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the payment to retrieve
+          schema:
+            type: string
+          example: pay_1a2b3c4d5e6f
+      responses:
+        '200':
+          description: Payment retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+              examples:
+                success:
+                  summary: Retrieved payment
+                  value:
+                    id: pay_1a2b3c4d5e6f
+                    amount: 2999
+                    currency: usd
+                    status: succeeded
+                    customer_id: cus_abc123
+                    description: Monthly subscription
+                    created_at: "2024-03-15T10:30:00Z"
+                    metadata:
+                      order_id: "ord_12345"
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                not_found:
+                  summary: Payment not found
+                  value:
+                    error:
+                      type: invalid_request_error
+                      message: No payment found with ID pay_1a2b3c4d5e6f
+                      code: resource_not_found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payments/{id}/refund:
+    post:
+      tags:
+        - Payments
+      summary: Refund a payment
+      description: |
+        Refunds a previously successful payment. You can refund the full amount or specify a partial amount to refund.
+        
+        **Important:** Only payments with a `succeeded` status can be refunded. Refunds are processed immediately
+        and cannot be reversed. The refunded amount will be returned to the original payment method.
+        
+        **Partial refunds:** You can issue multiple partial refunds as long as the total refunded amount
+        doesn't exceed the original payment amount.
+      operationId: refundPayment
+      x-internal: false
+      x-codeSamples:
+        - lang: curl
+          label: cURL (Full refund)
+          source: |
+            curl https://api.evolvepayments.com/v1/payments/pay_1a2b3c4d5e6f/refund \
+              -X POST \
+              -H "Authorization: Bearer sk_test_1a2b3c4d5e6f" \
+              -H "Content-Type: application/json"
+        - lang: curl
+          label: cURL (Partial refund)
+          source: |
+            curl https://api.evolvepayments.com/v1/payments/pay_1a2b3c4d5e6f/refund \
+              -X POST \
+              -H "Authorization: Bearer sk_test_1a2b3c4d5e6f" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "amount": 1500,
+                "reason": "Customer requested partial refund"
+              }'
+        - lang: python
+          label: Python
+          source: |
+            import requests
+            
+            url = "https://api.evolvepayments.com/v1/payments/pay_1a2b3c4d5e6f/refund"
+            headers = {
+                "Authorization": "Bearer sk_test_1a2b3c4d5e6f",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "amount": 1500,
+                "reason": "Customer requested partial refund"
+            }
+            
+            response = requests.post(url, json=data, headers=headers)
+            payment = response.json()
+            print(f"Refunded {payment['amount']} cents")
+        - lang: javascript
+          label: Node.js
+          source: |
+            const axios = require('axios');
+            
+            const refundPayment = async (paymentId, amount = null) => {
+              const response = await axios.post(
+                `https://api.evolvepayments.com/v1/payments/${paymentId}/refund`,
+                {
+                  amount: amount, // null for full refund
+                  reason: 'Customer requested refund'
+                },
+                {
+                  headers: {
+                    'Authorization': 'Bearer sk_test_1a2b3c4d5e6f',
+                    'Content-Type': 'application/json'
+                  }
+                }
+              );
+              
+              console.log('Refund status:', response.data.status);
+              return response.data;
+            };
+            
+            refundPayment('pay_1a2b3c4d5e6f', 1500);
+        - lang: ruby
+          label: Ruby
+          source: |
+            require 'net/http'
+            require 'json'
+            require 'uri'
+            
+            payment_id = 'pay_1a2b3c4d5e6f'
+            uri = URI("https://api.evolvepayments.com/v1/payments/#{payment_id}/refund")
+            
+            http = Net::HTTP.new(uri.host, uri.port)
+            http.use_ssl = true
+            
+            request = Net::HTTP::Post.new(uri.path)
+            request['Authorization'] = 'Bearer sk_test_1a2b3c4d5e6f'
+            request['Content-Type'] = 'application/json'
+            request.body = {
+              amount: 1500,
+              reason: 'Customer requested refund'
+            }.to_json
+            
+            response = http.request(request)
+            payment = JSON.parse(response.body)
+            puts "Status: #{payment['status']}"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the payment to refund
+          schema:
+            type: string
+          example: pay_1a2b3c4d5e6f
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  description: |
+                    Amount to refund in cents. If not provided, the full payment amount will be refunded.
+                    Must not exceed the original payment amount minus any previous refunds.
+                  example: 1500
+                reason:
+                  type: string
+                  description: Reason for the refund (for internal records)
+                  example: Customer requested refund
+            examples:
+              full:
+                summary: Full refund
+                value: {}
+              partial:
+                summary: Partial refund
+                value:
+                  amount: 1500
+                  reason: Customer requested partial refund
+      responses:
+        '200':
+          description: Payment refunded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+              examples:
+                refunded:
+                  summary: Refunded payment
+                  value:
+                    id: pay_1a2b3c4d5e6f
+                    amount: 2999
+                    currency: usd
+                    status: refunded
+                    customer_id: cus_abc123
+                    description: Monthly subscription
+                    created_at: "2024-03-15T10:30:00Z"
+                    metadata:
+                      order_id: "ord_12345"
+        '400':
+          description: Invalid refund request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_amount:
+                  summary: Refund amount exceeds available amount
+                  value:
+                    error:
+                      type: invalid_request_error
+                      message: Refund amount cannot exceed the remaining balance
+                      code: invalid_refund_amount
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /customers:
+    post:
+      tags:
+        - Customers
+      summary: Create a customer
+      description: |
+        Creates a new customer object. Customer records allow you to track multiple payments for the same customer
+        and simplify future payment creation.
+        
+        **Benefits of using customers:**
+        - Track payment history across multiple transactions
+        - Store payment methods for faster checkout
+        - Analyze customer lifetime value
+        - Simplify refunds and support requests
+      operationId: createCustomer
+      x-internal: false
+      x-codeSamples:
+        - lang: curl
+          label: cURL
+          source: |
+            curl https://api.evolvepayments.com/v1/customers \
+              -X POST \
+              -H "Authorization: Bearer sk_test_1a2b3c4d5e6f" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "email": "john.doe@example.com",
+                "name": "John Doe",
+                "phone": "+1234567890"
+              }'
+        - lang: python
+          label: Python
+          source: |
+            import requests
+            
+            url = "https://api.evolvepayments.com/v1/customers"
+            headers = {
+                "Authorization": "Bearer sk_test_1a2b3c4d5e6f",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "email": "john.doe@example.com",
+                "name": "John Doe",
+                "phone": "+1234567890"
+            }
+            
+            response = requests.post(url, json=data, headers=headers)
+            customer = response.json()
+            print(f"Customer ID: {customer['id']}")
+        - lang: javascript
+          label: Node.js
+          source: |
+            const axios = require('axios');
+            
+            const createCustomer = async () => {
+              const response = await axios.post(
+                'https://api.evolvepayments.com/v1/customers',
+                {
+                  email: 'john.doe@example.com',
+                  name: 'John Doe',
+                  phone: '+1234567890'
+                },
+                {
+                  headers: {
+                    'Authorization': 'Bearer sk_test_1a2b3c4d5e6f',
+                    'Content-Type': 'application/json'
+                  }
+                }
+              );
+              
+              console.log('Customer ID:', response.data.id);
+              return response.data;
+            };
+            
+            createCustomer();
+        - lang: ruby
+          label: Ruby
+          source: |
+            require 'net/http'
+            require 'json'
+            require 'uri'
+            
+            uri = URI('https://api.evolvepayments.com/v1/customers')
+            
+            http = Net::HTTP.new(uri.host, uri.port)
+            http.use_ssl = true
+            
+            request = Net::HTTP::Post.new(uri.path)
+            request['Authorization'] = 'Bearer sk_test_1a2b3c4d5e6f'
+            request['Content-Type'] = 'application/json'
+            request.body = {
+              email: 'john.doe@example.com',
+              name: 'John Doe',
+              phone: '+1234567890'
+            }.to_json
+            
+            response = http.request(request)
+            customer = JSON.parse(response.body)
+            puts "Customer ID: #{customer['id']}"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Customer's email address (must be unique)
+                  example: john.doe@example.com
+                name:
+                  type: string
+                  description: Customer's full name
+                  example: John Doe
+                phone:
+                  type: string
+                  description: Customer's phone number in E.164 format
+                  example: "+1234567890"
+                metadata:
+                  type: object
+                  description: Set of key-value pairs for storing additional information (max 20 keys)
+                  additionalProperties:
+                    type: string
+                  example:
+                    account_type: "premium"
+                    signup_source: "website"
+            examples:
+              basic:
+                summary: Basic customer
+                value:
+                  email: john.doe@example.com
+                  name: John Doe
+              with_metadata:
+                summary: Customer with metadata
+                value:
+                  email: jane.smith@example.com
+                  name: Jane Smith
+                  phone: "+1987654321"
+                  metadata:
+                    account_type: premium
+                    signup_source: mobile_app
+                    referral_code: FRIEND2024
+      responses:
+        '200':
+          description: Customer created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              examples:
+                success:
+                  summary: Created customer
+                  value:
+                    id: cus_1a2b3c4d5e6f
+                    email: john.doe@example.com
+                    name: John Doe
+                    phone: "+1234567890"
+                    created_at: "2024-03-15T10:30:00Z"
+                    metadata:
+                      account_type: premium
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                duplicate_email:
+                  summary: Email already exists
+                  value:
+                    error:
+                      type: invalid_request_error
+                      message: A customer with this email already exists
+                      code: duplicate_email
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /customers/{id}:
+    get:
+      tags:
+        - Customers
+      summary: Retrieve a customer
+      description: |
+        Retrieves the details of an existing customer by their unique identifier.
+        
+        This is useful for looking up customer information before creating a payment or for
+        displaying customer details in your application.
+      operationId: getCustomer
+      x-internal: false
+      x-codeSamples:
+        - lang: curl
+          label: cURL
+          source: |
+            curl https://api.evolvepayments.com/v1/customers/cus_1a2b3c4d5e6f \
+              -H "Authorization: Bearer sk_test_1a2b3c4d5e6f"
+        - lang: python
+          label: Python
+          source: |
+            import requests
+            
+            url = "https://api.evolvepayments.com/v1/customers/cus_1a2b3c4d5e6f"
+            headers = {"Authorization": "Bearer sk_test_1a2b3c4d5e6f"}
+            
+            response = requests.get(url, headers=headers)
+            customer = response.json()
+            print(f"Customer: {customer['name']} ({customer['email']})")
+        - lang: javascript
+          label: Node.js
+          source: |
+            const axios = require('axios');
+            
+            const getCustomer = async (customerId) => {
+              const response = await axios.get(
+                `https://api.evolvepayments.com/v1/customers/${customerId}`,
+                {
+                  headers: {
+                    'Authorization': 'Bearer sk_test_1a2b3c4d5e6f'
+                  }
+                }
+              );
+              
+              console.log('Customer:', response.data.name);
+              return response.data;
+            };
+            
+            getCustomer('cus_1a2b3c4d5e6f');
+        - lang: ruby
+          label: Ruby
+          source: |
+            require 'net/http'
+            require 'json'
+            require 'uri'
+            
+            customer_id = 'cus_1a2b3c4d5e6f'
+            uri = URI("https://api.evolvepayments.com/v1/customers/#{customer_id}")
+            
+            http = Net::HTTP.new(uri.host, uri.port)
+            http.use_ssl = true
+            
+            request = Net::HTTP::Get.new(uri.path)
+            request['Authorization'] = 'Bearer sk_test_1a2b3c4d5e6f'
+            
+            response = http.request(request)
+            customer = JSON.parse(response.body)
+            puts "Customer: #{customer['name']} (#{customer['email']})"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the customer to retrieve
+          schema:
+            type: string
+          example: cus_1a2b3c4d5e6f
+      responses:
+        '200':
+          description: Customer retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              examples:
+                success:
+                  summary: Retrieved customer
+                  value:
+                    id: cus_1a2b3c4d5e6f
+                    email: john.doe@example.com
+                    name: John Doe
+                    phone: "+1234567890"
+                    created_at: "2024-03-15T10:30:00Z"
+                    metadata:
+                      account_type: premium
+                      signup_source: website
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                not_found:
+                  summary: Customer not found
+                  value:
+                    error:
+                      type: invalid_request_error
+                      message: No customer found with ID cus_1a2b3c4d5e6f
+                      code: resource_not_found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        API key authentication. Include your API key in the Authorization header as a Bearer token.
+        
+        **Test keys** (start with `sk_test_`) only work with test data and never touch real payment methods.
+        **Live keys** (start with `sk_live_`) process real payments and should be kept secure.
+        
+        Example: `Authorization: Bearer sk_test_1a2b3c4d5e6f`
+
+  schemas:
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the payment (prefixed with `pay_`)
+          example: pay_1a2b3c4d5e6f
+        amount:
+          type: integer
+          description: Payment amount in cents (e.g., 2999 = $29.99)
+          example: 2999
+        currency:
+          type: string
+          description: Three-letter ISO currency code in lowercase
+          example: usd
+        status:
+          type: string
+          description: |
+            Current status of the payment:
+            - `pending`: Payment is being processed
+            - `succeeded`: Payment completed successfully
+            - `failed`: Payment failed (card declined, insufficient funds, etc.)
+            - `refunded`: Payment has been fully refunded
+          enum: [pending, succeeded, failed, refunded]
+          example: succeeded
+        customer_id:
+          type: string
+          description: ID of the customer associated with this payment (if any)
+          example: cus_1a2b3c4d5e6f
+          nullable: true
+        description:
+          type: string
+          description: Arbitrary description of the payment
+          example: Monthly subscription
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of when the payment was created
+          example: "2024-03-15T10:30:00Z"
+        metadata:
+          type: object
+          description: Additional structured information about the payment
+          additionalProperties:
+            type: string
+          example:
+            order_id: "ord_12345"
+            customer_name: "John Doe"
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the customer (prefixed with `cus_`)
+          example: cus_1a2b3c4d5e6f
+        email:
+          type: string
+          format: email
+          description: Customer's email address
+          example: john.doe@example.com
+        name:
+          type: string
+          description: Customer's full name
+          example: John Doe
+          nullable: true
+        phone:
+          type: string
+          description: Customer's phone number
+          example: "+1234567890"
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of when the customer was created
+          example: "2024-03-15T10:30:00Z"
+        metadata:
+          type: object
+          description: Additional structured information about the customer
+          additionalProperties:
+            type: string
+          example:
+            account_type: "premium"
+            signup_source: "website"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              description: The category of error
+              enum:
+                - invalid_request_error
+                - authentication_error
+                - rate_limit_error
+                - api_error
+              example: invalid_request_error
+            message:
+              type: string
+              description: A human-readable message providing more details about the error
+              example: Invalid currency code. Must be one of usd, eur, or gbp
+            code:
+              type: string
+              description: A short string indicating the specific error that occurred
+              example: invalid_currency

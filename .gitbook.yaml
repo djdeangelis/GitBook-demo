@@ -5,4 +5,4 @@ structure:
   summary: SUMMARY.md
 
 api:
-  openapi: ../openapi/evolve-enhanced.yaml
+  openapi: ../api-specs/evolve-enhanced.yaml

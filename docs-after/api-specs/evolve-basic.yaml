@@ -1,0 +1,439 @@
+openapi: 3.0.3
+info:
+  title: Evolve Payments API
+  description: |
+    Modern payment processing API for SaaS companies. Accept payments, manage customers, and handle refunds with ease.
+    
+    ## Authentication
+    All API requests require authentication using an API key passed in the Authorization header as a Bearer token.
+    
+    ## Base URL
+    All API requests should be made to: `https://api.evolvepayments.com/v1`
+  version: 1.0.0
+  contact:
+    name: Evolve Payments Support
+    email: support@evolvepayments.com
+    url: https://evolvepayments.com/support
+
+servers:
+  - url: https://api.evolvepayments.com/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Payments
+    description: Create and manage payment transactions
+  - name: Customers
+    description: Create and manage customer records
+
+paths:
+  /payments:
+    post:
+      tags:
+        - Payments
+      summary: Create a payment
+      description: Creates a new payment transaction. Amounts should be provided in cents (e.g., 2999 for $29.99).
+      operationId: createPayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - currency
+              properties:
+                amount:
+                  type: integer
+                  description: Payment amount in cents
+                  example: 2999
+                currency:
+                  type: string
+                  description: Three-letter ISO currency code
+                  example: usd
+                  enum: [usd, eur, gbp]
+                customer_id:
+                  type: string
+                  description: ID of an existing customer
+                  example: cus_1a2b3c4d5e6f
+                description:
+                  type: string
+                  description: Description of the payment
+                  example: Monthly subscription
+                card:
+                  type: object
+                  description: Card details for the payment
+                  required:
+                    - number
+                    - exp_month
+                    - exp_year
+                    - cvc
+                  properties:
+                    number:
+                      type: string
+                      description: Card number
+                      example: "4242424242424242"
+                    exp_month:
+                      type: integer
+                      description: Expiration month (1-12)
+                      example: 12
+                    exp_year:
+                      type: integer
+                      description: Expiration year
+                      example: 2025
+                    cvc:
+                      type: string
+                      description: Card security code
+                      example: "123"
+                metadata:
+                  type: object
+                  description: Set of key-value pairs for storing additional information
+                  additionalProperties:
+                    type: string
+                  example:
+                    order_id: "ord_12345"
+                    customer_name: "John Doe"
+      responses:
+        '200':
+          description: Payment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payments/{id}:
+    get:
+      tags:
+        - Payments
+      summary: Retrieve a payment
+      description: Retrieves the details of a previously created payment.
+      operationId: getPayment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The payment ID
+          schema:
+            type: string
+          example: pay_1a2b3c4d5e6f
+      responses:
+        '200':
+          description: Payment retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payments/{id}/refund:
+    post:
+      tags:
+        - Payments
+      summary: Refund a payment
+      description: Refunds a previously successful payment. You can refund the full amount or a partial amount.
+      operationId: refundPayment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The payment ID to refund
+          schema:
+            type: string
+          example: pay_1a2b3c4d5e6f
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  description: Amount to refund in cents. If not provided, the full amount will be refunded.
+                  example: 1500
+                reason:
+                  type: string
+                  description: Reason for the refund
+                  example: Customer requested refund
+      responses:
+        '200':
+          description: Payment refunded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: Invalid refund request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Payment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /customers:
+    post:
+      tags:
+        - Customers
+      summary: Create a customer
+      description: Creates a new customer object. Customer records can be associated with payments for easier tracking.
+      operationId: createCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Customer's email address
+                  example: john.doe@example.com
+                name:
+                  type: string
+                  description: Customer's full name
+                  example: John Doe
+                phone:
+                  type: string
+                  description: Customer's phone number
+                  example: "+1234567890"
+                metadata:
+                  type: object
+                  description: Set of key-value pairs for storing additional information
+                  additionalProperties:
+                    type: string
+                  example:
+                    account_type: "premium"
+                    signup_source: "website"
+      responses:
+        '200':
+          description: Customer created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /customers/{id}:
+    get:
+      tags:
+        - Customers
+      summary: Retrieve a customer
+      description: Retrieves the details of an existing customer.
+      operationId: getCustomer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The customer ID
+          schema:
+            type: string
+          example: cus_1a2b3c4d5e6f
+      responses:
+        '200':
+          description: Customer retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        API key authentication. Include your API key in the Authorization header as a Bearer token.
+        Example: `Authorization: Bearer sk_test_1a2b3c4d5e6f`
+
+  schemas:
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the payment
+          example: pay_1a2b3c4d5e6f
+        amount:
+          type: integer
+          description: Payment amount in cents
+          example: 2999
+        currency:
+          type: string
+          description: Three-letter ISO currency code
+          example: usd
+        status:
+          type: string
+          description: Current status of the payment
+          enum: [pending, succeeded, failed, refunded]
+          example: succeeded
+        customer_id:
+          type: string
+          description: ID of the customer associated with this payment
+          example: cus_1a2b3c4d5e6f
+          nullable: true
+        description:
+          type: string
+          description: Description of the payment
+          example: Monthly subscription
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the payment was created
+          example: "2024-03-15T10:30:00Z"
+        metadata:
+          type: object
+          description: Additional information about the payment
+          additionalProperties:
+            type: string
+          example:
+            order_id: "ord_12345"
+            customer_name: "John Doe"
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the customer
+          example: cus_1a2b3c4d5e6f
+        email:
+          type: string
+          format: email
+          description: Customer's email address
+          example: john.doe@example.com
+        name:
+          type: string
+          description: Customer's full name
+          example: John Doe
+          nullable: true
+        phone:
+          type: string
+          description: Customer's phone number
+          example: "+1234567890"
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the customer was created
+          example: "2024-03-15T10:30:00Z"
+        metadata:
+          type: object
+          description: Additional information about the customer
+          additionalProperties:
+            type: string
+          example:
+            account_type: "premium"
+            signup_source: "website"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              description: The type of error
+              example: invalid_request_error
+            message:
+              type: string
+              description: A human-readable message describing the error
+              example: Invalid currency code. Must be one of: usd, eur, gbp
+            code:
+              type: string
+              description: A short error code
+              example: invalid_currency
