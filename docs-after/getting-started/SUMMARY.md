@@ -1,5 +1,14 @@
 # Table of contents
 
-* [Welcome to Evolve Payments!](README.md)
-* [Authentication](authentication.md)
-* [Making Your First Payment](making-your-first-payment.md)
+## getting started
+
+* [Quickstart](README.md)
+* [Collect your first payment](getting-started/collect-your-first-payment.md)
+* [Invite your team](getting-started/invite-your-team.md)
+
+## product
+
+* [Payments dashboard](product/payments-dashboard.md)
+* [Dispute management](product/dispute-management.md)
+* [Usage insights](product/usage-insights.md)
+* [Reporting](product/reporting.md)
