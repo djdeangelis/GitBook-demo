@@ -45,12 +45,7 @@ info:
     
     ### Authentication
     
-    Include your API key in the `Authorization` header as a Bearer token:
-```bash
-    curl https://api.evolvepayments.com/v1/payments \
-      -H "Authorization: Bearer sk_test_1a2b3c4d5e6f" \
-      -H "Content-Type: application/json"
-```
+    Include your API key in the `Authorization` header as a Bearer token with the format: `Authorization: Bearer sk_test_1a2b3c4d5e6f`
     
     **API Key Types:**
     - **Test keys** (`sk_test_...`) - For development and testing, won't process real charges
