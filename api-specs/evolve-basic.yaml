@@ -77,12 +77,12 @@ security:
 tags:
   - name: Payments
     description: Create and manage payment transactions
-    x-page-title: Payments API V3
-    x-page-icon: money-bill-wheat
+    # x-page-title: Payments API V3
+    # x-page-icon: money-bill-wheat
   - name: Customers
     description: Create and manage customer records
-    x-page-title: Customers API V4
-    x-page-icon: user-group
+    # x-page-title: Customers API V4
+    # x-page-icon: user-group
 
 paths:
   /payments:
@@ -111,7 +111,7 @@ paths:
                   description: Three-letter ISO currency code
                   example: usd
                   enum: [usd, eur, gbp]
-                  x-enum-descriptions:
+                  x-enumDescriptions:
                     usd: US Dollar
                     eur: Euro
                     gbp: British Pound
@@ -189,62 +189,62 @@ paths:
       summary: Retrieve a payment
       description: Retrieves the details of a previously created payment.
       operationId: getPayment
-      x-codeSamples:
-        - lang: curl
-          label: cURL
-          source: |
-            curl https://api.evolvepayments.com/v1/payments/pay_1a2b3c4d5e6f \
-              -H "Authorization: Bearer sk_test_1a2b3c4d5e6f"
-        - lang: python
-          label: Python
-          source: |
-            import requests
+      # x-codeSamples:
+      #   - lang: curl
+      #     label: cURL
+      #     source: |
+      #       curl https://api.evolvepayments.com/v1/payments/pay_1a2b3c4d5e6f \
+      #         -H "Authorization: Bearer sk_test_1a2b3c4d5e6f"
+      #   - lang: python
+      #     label: Python
+      #     source: |
+      #       import requests
             
-            url = "https://api.evolvepayments.com/v1/payments/pay_1a2b3c4d5e6f"
-            headers = {"Authorization": "Bearer sk_test_1a2b3c4d5e6f"}
+      #       url = "https://api.evolvepayments.com/v1/payments/pay_1a2b3c4d5e6f"
+      #       headers = {"Authorization": "Bearer sk_test_1a2b3c4d5e6f"}
             
-            response = requests.get(url, headers=headers)
-            payment = response.json()
-            print(f"Status: {payment['status']}")
-        - lang: javascript
-          label: Node.js
-          source: |
-            const axios = require('axios');
+      #       response = requests.get(url, headers=headers)
+      #       payment = response.json()
+      #       print(f"Status: {payment['status']}")
+      #   - lang: javascript
+      #     label: Node.js
+      #     source: |
+      #       const axios = require('axios');
             
-            const getPayment = async (paymentId) => {
-              const response = await axios.get(
-                `https://api.evolvepayments.com/v1/payments/${paymentId}`,
-                {
-                  headers: {
-                    'Authorization': 'Bearer sk_test_1a2b3c4d5e6f'
-                  }
-                }
-              );
+      #       const getPayment = async (paymentId) => {
+      #         const response = await axios.get(
+      #           `https://api.evolvepayments.com/v1/payments/${paymentId}`,
+      #           {
+      #             headers: {
+      #               'Authorization': 'Bearer sk_test_1a2b3c4d5e6f'
+      #             }
+      #           }
+      #         );
               
-              console.log('Payment status:', response.data.status);
-              return response.data;
-            };
+      #         console.log('Payment status:', response.data.status);
+      #         return response.data;
+      #       };
             
-            getPayment('pay_1a2b3c4d5e6f');
-        - lang: ruby
-          label: Ruby
-          source: |
-            require 'net/http'
-            require 'json'
-            require 'uri'
+      #       getPayment('pay_1a2b3c4d5e6f');
+      #   - lang: ruby
+      #     label: Ruby
+      #     source: |
+      #       require 'net/http'
+      #       require 'json'
+      #       require 'uri'
             
-            payment_id = 'pay_1a2b3c4d5e6f'
-            uri = URI("https://api.evolvepayments.com/v1/payments/#{payment_id}")
+      #       payment_id = 'pay_1a2b3c4d5e6f'
+      #       uri = URI("https://api.evolvepayments.com/v1/payments/#{payment_id}")
             
-            http = Net::HTTP.new(uri.host, uri.port)
-            http.use_ssl = true
+      #       http = Net::HTTP.new(uri.host, uri.port)
+      #       http.use_ssl = true
             
-            request = Net::HTTP::Get.new(uri.path)
-            request['Authorization'] = 'Bearer sk_test_1a2b3c4d5e6f'
+      #       request = Net::HTTP::Get.new(uri.path)
+      #       request['Authorization'] = 'Bearer sk_test_1a2b3c4d5e6f'
             
-            response = http.request(request)
-            payment = JSON.parse(response.body)
-            puts "Status: #{payment['status']}"
+      #       response = http.request(request)
+      #       payment = JSON.parse(response.body)
+      #       puts "Status: #{payment['status']}"
       parameters:
         - name: id
           in: path
@@ -286,7 +286,7 @@ paths:
       summary: Refund a payment
       description: Refunds a previously successful payment. You can refund the full amount or a partial amount.
       operationId: refundPayment
-      x-stability: experimental
+      # x-stability: experimental
       parameters:
         - name: id
           in: path
@@ -412,7 +412,7 @@ paths:
       summary: Retrieve a customer
       description: Retrieves the details of an existing customer.
       operationId: getCustomer
-      x-hideTryItPanel: true
+      # x-hideTryItPanel: true
       parameters:
         - name: id
           in: path
