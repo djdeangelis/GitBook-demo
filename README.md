@@ -1,4 +1,5 @@
-# api_days_paris_2025
+# Transform Your OpenAPI Spec into Interactive, AI-Powered Documentation with [GitBook](https://gitbook.com)
+
 
 Welcome! Today we're going to set up a docs site with GitBook that
 contains both product docs and auto-updating API docs. 
