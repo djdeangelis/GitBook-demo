@@ -1,6 +1,8 @@
-# Transform Your OpenAPI Spec into Interactive, AI-Powered Documentation with [GitBook](https://gitbook.com)
-Tal Gluck
-GitBook
+# Transform Your OpenAPI Spec into Interactive, AI-Powered Documentation with GitBook
+
+**Tal Gluck**
+
+[**GitBook**](https://gitbook.com)
 
 ![Link to this repo](images/api_days_paris_qr_code.png)
 
