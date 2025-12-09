@@ -1,5 +1,8 @@
 # Transform Your OpenAPI Spec into Interactive, AI-Powered Documentation with [GitBook](https://gitbook.com)
+Tal Gluck
+GitBook
 
+![Link to this repo](images/api_days_paris_qr_code.png)
 
 Welcome! Today we're going to set up a docs site with GitBook that
 contains both product docs and auto-updating API docs. 
@@ -22,3 +25,11 @@ Here are the steps:
 9. Add a set of OpenAPI pages to your docs and re-publish your docs.
 10. Customize your OpenAPI spec, push changes, refresh the spec, and see the changes.
 11. Ask some questions about the spec to the GitBook Assistant.
+
+
+Examples:
+- [The starting docs site](https://apidays-gitbook.gitbook.io/before/)
+- [The finished docs site](https://apidays-gitbook.gitbook.io/after/)
+
+
+
