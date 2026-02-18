@@ -20,13 +20,13 @@ Only admins can invite new users and assign roles. Be sure to select the appropr
 
 {% stepper %}
 {% step %}
-### Access Team Management
+#### Access Team Management
 
 Navigate to **Settings → Organization → Team Management** (admin access required).
 {% endstep %}
 
 {% step %}
-### Send Invitations
+#### Send Invitations
 
 Click **Invite Team Member** and provide:
 
@@ -36,7 +36,7 @@ Click **Invite Team Member** and provide:
 {% endstep %}
 
 {% step %}
-### Invitation Process
+#### Invitation Process
 
 The invited user will receive an email with:
 

@@ -17,15 +17,25 @@
 
 ## API
 
-* [Evolve Payments API](api/evolve-payments-api.md)
-
-***
-
 * ```yaml
   type: builtin:openapi
   props:
     models: true
     downloadLink: true
+  dependencies:
+    spec:
+      ref:
+        kind: openapi
+        spec: aviar-industries-api
+  ```
+
+***
+
+* ```yaml
+  props:
+    models: true
+    downloadLink: true
+  type: builtin:openapi
   dependencies:
     spec:
       ref:
