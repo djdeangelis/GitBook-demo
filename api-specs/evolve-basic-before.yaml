@@ -3,7 +3,7 @@ info:
   title: Evolve Payments API
   x-page-icon: credit-card
   description: |
-    # Evolve Payments API Documentation
+    # Evolve Payments API
     Modern payment processing API for SaaS companies. Accept payments, manage customers, and handle refunds with ease.
     
     {% hint style="info" %}
